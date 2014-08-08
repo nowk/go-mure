@@ -60,7 +60,11 @@ func (self *Readers) read(file string, ch chan<- Reader, er chan<- error) {
 	r, w := io.Pipe()
 	defer w.Close()
 
-	stat, _ := fi.Stat()
+	stat, err := fi.Stat()
+	if err != nil {
+		er <- err
+		return
+	}
 
 	ch <- Reader{r, stat.Name(), stat.Size()}
 	if _, err := io.Copy(w, fi); err != nil {

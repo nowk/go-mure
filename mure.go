@@ -47,7 +47,6 @@ func (self *Readers) Subscribe() (<-chan Reader, <-chan error) {
 }
 
 // read opens a file and pipes back to the .Reader channel
-// This can call the error channel more than once
 func (self *Readers) read(file string, ch chan<- Reader, er chan<- error) {
 	fi, err := os.Open(file)
 	if err != nil {

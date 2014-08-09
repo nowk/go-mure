@@ -43,28 +43,28 @@ func (self Readers) Len() int {
 func (self *Readers) Subscribe() (<-chan Reader, chan error) {
 	n := len(self.Files)
 	ch := make(chan Reader, n)
-	done := make(chan error, n)
+	er := make(chan error, n)
 
 	for _, file := range self.Files {
-		go self.read(file, ch, done)
+		go self.read(file, ch, er)
 	}
 
-	return ch, done
+	return ch, er
 }
 
 // read opens a file and pipes back to the .Reader channel
-func (self *Readers) read(file string, ch chan<- Reader, done chan<- error) {
+func (self *Readers) read(file string, ch chan<- Reader, er chan<- error) {
 	f, err := os.Open(file)
 
 	defer func() {
 		if f != nil {
 			f.Close()
 		}
-		done <- nil
+		er <- nil
 	}()
 
 	if err != nil {
-		done <- err
+		er <- err
 		return
 	}
 
@@ -73,7 +73,7 @@ func (self *Readers) read(file string, ch chan<- Reader, done chan<- error) {
 
 	stat, err := f.Stat()
 	if err != nil {
-		done <- err
+		er <- err
 		return
 	}
 
@@ -84,6 +84,6 @@ func (self *Readers) read(file string, ch chan<- Reader, done chan<- error) {
 	}
 
 	if _, err := io.Copy(w, f); err != nil {
-		done <- err
+		er <- err
 	}
 }

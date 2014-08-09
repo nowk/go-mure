@@ -11,7 +11,7 @@ func TestReaders(t *testing.T) {
 		Files: []string{"test/good.txt", "bad.txt"},
 	}
 
-	ch, done := readers.Subscribe()
+	ch, er := readers.Subscribe()
 
 	i := readers.Len()
 	for {
@@ -33,7 +33,7 @@ func TestReaders(t *testing.T) {
 			if val := string(bytes[:12]); "Hello World!" != val {
 				t.Errorf("Expected file contents to be 'Hello World!', got '%s'", val)
 			}
-		case e := <-done:
+		case e := <-er:
 			if e != nil {
 				if val := e.Error(); "open bad.txt: no such file or directory" != val {
 					t.Error("Expected error to be 'open bad.txt: no such file or directory', got '%s'", val)

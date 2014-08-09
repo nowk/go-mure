@@ -35,9 +35,10 @@ func NewReaders(files ...string) (r *Readers) {
 }
 
 // Subscribe returns a .Reader and error channel then begins the readpiping
-func (self *Readers) Subscribe() (<-chan Reader, <-chan error) {
-	ch := make(chan Reader)
-	er := make(chan error)
+func (self *Readers) Subscribe() (<-chan Reader, chan error) {
+	n := len(self.Files)
+	ch := make(chan Reader, n)
+	er := make(chan error, n)
 
 	for _, file := range self.Files {
 		go self.read(file, ch, er)

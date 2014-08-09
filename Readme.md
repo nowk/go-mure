@@ -18,7 +18,7 @@ Multiple file readers to channel
           // r.Name() => the original file name 
           // r.Size() => the original file size
         case e := <-done:
-          // error is returned
+          // receives errors, if any
           // then nil to signify done
       }
     }

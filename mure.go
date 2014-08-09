@@ -34,6 +34,11 @@ func NewReaders(files ...string) (r *Readers) {
 	return
 }
 
+// Len returns the number of files to read
+func (self Readers) Len() int {
+	return len(self.Files)
+}
+
 // Subscribe returns a .Reader and error channel then begins the readpiping
 func (self *Readers) Subscribe() (<-chan Reader, chan error) {
 	n := len(self.Files)

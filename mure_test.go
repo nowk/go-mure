@@ -13,7 +13,7 @@ func TestReaders(t *testing.T) {
 
 	ch, done := readers.Subscribe()
 
-	i := 2
+	i := readers.Len()
 	for {
 		if i == 0 {
 			break

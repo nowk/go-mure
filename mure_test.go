@@ -1,6 +1,9 @@
 package mure_test
 
-import "testing"
+import (
+	"io/ioutil"
+	"testing"
+)
 import . "github.com/nowk/go-mure"
 
 func TestReaders(t *testing.T) {
@@ -8,9 +11,14 @@ func TestReaders(t *testing.T) {
 		Files: []string{"test/good.txt", "bad.txt"},
 	}
 
-	ch, er := readers.Subscribe()
+	ch, done := readers.Subscribe()
 
-	for i := 0; i < 2; i++ {
+	i := 2
+	for {
+		if i == 0 {
+			break
+		}
+
 		select {
 		case r := <-ch:
 			if val := r.Name(); "good.txt" != val {
@@ -21,14 +29,17 @@ func TestReaders(t *testing.T) {
 				t.Errorf("Expected Size() to be 13, got %d", val)
 			}
 
-			bytes := make([]byte, 12)
-			r.Read(bytes)
-			if val := string(bytes); "Hello World!" != val {
+			bytes, _ := ioutil.ReadAll(r) // ensure defer gets called
+			if val := string(bytes[:12]); "Hello World!" != val {
 				t.Errorf("Expected file contents to be 'Hello World!', got '%s'", val)
 			}
-		case e := <-er:
-			if val := e.Error(); "open bad.txt: no such file or directory" != val {
-				t.Error("Expected error to be 'open bad.txt: no such file or directory', got '%s'", val)
+		case e := <-done:
+			if e != nil {
+				if val := e.Error(); "open bad.txt: no such file or directory" != val {
+					t.Error("Expected error to be 'open bad.txt: no such file or directory', got '%s'", val)
+				}
+			} else {
+				i--
 			}
 		}
 	}

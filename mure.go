@@ -38,36 +38,47 @@ func NewReaders(files ...string) (r *Readers) {
 func (self *Readers) Subscribe() (<-chan Reader, chan error) {
 	n := len(self.Files)
 	ch := make(chan Reader, n)
-	er := make(chan error, n)
+	done := make(chan error, n)
 
 	for _, file := range self.Files {
-		go self.read(file, ch, er)
+		go self.read(file, ch, done)
 	}
 
-	return ch, er
+	return ch, done
 }
 
 // read opens a file and pipes back to the .Reader channel
-func (self *Readers) read(file string, ch chan<- Reader, er chan<- error) {
-	fi, err := os.Open(file)
+func (self *Readers) read(file string, ch chan<- Reader, done chan<- error) {
+	f, err := os.Open(file)
+
+	defer func() {
+		if f != nil {
+			f.Close()
+		}
+		done <- nil
+	}()
+
 	if err != nil {
-		er <- err
+		done <- err
 		return
 	}
-	defer fi.Close()
-	// ch <- bufio.NewReader(fi) // need to close file
 
 	r, w := io.Pipe()
 	defer w.Close()
 
-	stat, err := fi.Stat()
+	stat, err := f.Stat()
 	if err != nil {
-		er <- err
+		done <- err
 		return
 	}
 
-	ch <- Reader{r, stat.Name(), stat.Size()}
-	if _, err := io.Copy(w, fi); err != nil {
-		er <- err
+	ch <- Reader{
+		r,
+		stat.Name(),
+		stat.Size(),
+	}
+
+	if _, err := io.Copy(w, f); err != nil {
+		done <- err
 	}
 }

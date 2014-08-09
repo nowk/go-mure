@@ -7,7 +7,7 @@ Multiple file readers to channel
 ## Example
 
     readers := mure.NewReaders("file-1.txt", "file-2.txt", "file-3.txt")
-    ch, er := readers.Subscribe()
+    ch, done := readers.Subscribe()
 
     for {
       select {
@@ -17,8 +17,9 @@ Multiple file readers to channel
           // provides these additional methods
           // r.Name() => the original file name 
           // r.Size() => the original file size
-        case e := <-er:
+        case e := <-done:
           // error is returned
+          // then nil to signify done
       }
     }
 

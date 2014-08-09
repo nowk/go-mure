@@ -1,5 +1,6 @@
 # go-mure
 
+[![Build Status](https://drone.io/github.com/nowk/go-mure/status.png)](https://drone.io/github.com/nowk/go-mure/latest)
 [![Build Status](https://travis-ci.org/nowk/go-mure.svg?branch=master)](https://travis-ci.org/nowk/go-mure)
 
 Multiple file readers to channel

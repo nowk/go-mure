@@ -43,10 +43,28 @@ func (self Readers) Len() int {
 func (self *Readers) Subscribe() (<-chan Reader, chan error) {
 	n := len(self.Files)
 	ch := make(chan Reader, n)
-	er := make(chan error, n)
+	er := make(chan error)
+	qu := make(chan error)
+
+	go func() {
+		for {
+			if n == 0 {
+				break
+			}
+
+			err := <-qu
+			if err != nil {
+				er <- err
+			} else {
+				n--
+			}
+		}
+
+		close(ch)
+	}()
 
 	for _, file := range self.Files {
-		go self.read(file, ch, er)
+		go self.read(file, ch, qu)
 	}
 
 	return ch, er

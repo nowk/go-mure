@@ -13,14 +13,17 @@ func TestReaders(t *testing.T) {
 
 	ch, er := readers.Subscribe()
 
-	i := readers.Len()
+	i := 0
+Loop:
 	for {
-		if i == 0 {
-			break
-		}
-
 		select {
-		case r := <-ch:
+		case r, ok := <-ch:
+			i++
+
+			if !ok {
+				break Loop
+			}
+
 			if val := r.Name(); "good.txt" != val {
 				t.Errorf("Expected Name() to be 'good.txt', got '%s'", val)
 			}
@@ -34,13 +37,13 @@ func TestReaders(t *testing.T) {
 				t.Errorf("Expected file contents to be 'Hello World!', got '%s'", val)
 			}
 		case e := <-er:
-			if e != nil {
-				if val := e.Error(); "open bad.txt: no such file or directory" != val {
-					t.Error("Expected error to be 'open bad.txt: no such file or directory', got '%s'", val)
-				}
-			} else {
-				i--
+			if val := e.Error(); "open bad.txt: no such file or directory" != val {
+				t.Error("Expected error to be 'open bad.txt: no such file or directory', got '%s'", val)
 			}
 		}
+	}
+
+	if i != 2 {
+		t.Errorf("Expected to process 2 readers, but got %d", i)
 	}
 }

@@ -8,19 +8,24 @@ Multiple file readers to channel
 ## Example
 
     readers := mure.NewReaders("file-1.txt", "file-2.txt", "file-3.txt")
-    ch, done := readers.Subscribe()
+    ch, er := readers.Subscribe()
 
     for {
       select {
-        case r := <-ch:
-          // r impelements io.Reader
-          //
-          // provides these additional methods
-          // r.Name() => the original file name 
-          // r.Size() => the original file size
-        case e := <-done:
-          // receives errors, if any
-          // then nil to signify done
+        case r, ok := <-ch:
+          if !ok {
+            return // done
+          }
+
+          out, err := os.Create(fmt.Sprintf("out_%s", r.Name()))
+          if err != nil {
+            panic(err)
+          }
+
+          io.Copy(out, r)
+          out.Close()
+        case err := <-er:
+          log.Print("error:", err)
       }
     }
 
